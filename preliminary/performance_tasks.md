@@ -44,11 +44,11 @@ can be used by tesseract to create an OCR image.
   > `uv add name-of-open-cv-library
 
 6. Have the dependencies in the `pyproject.toml` changed? If so, how?
-  >It has changed, now the toml file displays "opencv-python>=4.12.0.88" as a dependancy
+  >It has changed, now the toml file displays "opencv-python>=4.12.0.88" as a dependency
   >
 7. Why did we use `uv add` over `uv pip`?
   >Because uv add allows for cross-platform compatibility. UV pip would download the latest version available for the
-> user's chosen OS but UV add would take other platforms into account when installing dependancies.
+> user's chosen OS but UV add would take other platforms into account when installing dependencies. 
   >
 8. The `numpy` library is required for OpenCV. Should you add an explicit requirement for it? Why/Why not?
   >I don't believe there is a need to add an explicit requirement for it as when I downloaded opencv through uv, the appropriate
