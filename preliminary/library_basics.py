@@ -18,8 +18,8 @@ import numpy as np
 from PIL import Image
 
 
-VID_PATH = Path("../resources/oop.mp4")
-OUT_PATH = Path("../resources/")
+VID_PATH = Path("resources/oop.mp4")
+OUT_PATH = Path("resources/")
 
 
 class CodingVideo:
@@ -73,9 +73,6 @@ class CodingVideo:
         if not ok:
             raise ValueError("Failed to encode frame")
         return buf.tobytes()
-
-
-
 
     def save_as_image(self, seconds: int, output_path: Path | str = 'output.png') -> None:
         """Saves the given frame as a png image
