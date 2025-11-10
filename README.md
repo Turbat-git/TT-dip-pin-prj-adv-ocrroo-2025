@@ -15,13 +15,14 @@ A Python-based OCR and image processing project using OpenCV and Pillow.
 Before running the program, ensure you have:
 - **Python 3.12 or later**
 - **Git** installed
-- **uv** (a fast Python package & environment manager)
+- **uv 0.9.2 or later**
 
 ---
 
 ## Installation
 
 ### 1. Install uv
+The command needs to be done in powershell, not git bash.
 ```powershell
 powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
 ```
