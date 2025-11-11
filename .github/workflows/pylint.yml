@@ -16,7 +16,7 @@ jobs:
         python-version: ${{ matrix.python-version }}
     - name: Install dependencies
       run: |
-        pip install uv
+        curl -LsSf https://astral.sh/uv/install.sh | sh
         pip install pylint
         uv sync
     - name: Analysing the code with pylint
