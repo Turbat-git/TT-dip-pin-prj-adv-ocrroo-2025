@@ -26,8 +26,6 @@ The command needs to be done in powershell, not git bash.
 powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
 ```
 
----
-
 ### 2. Verify uv is installed
 ```powershell
 uv --version
@@ -38,14 +36,11 @@ uv --version
 git clone https://github.com/Turbat-git/TT-dip-pin-prj-adv-ocrroo-2025
 cd TT-dip-pin-prj-adv-ocrroo-2025
 ```
----
 
 ### 4. Download dependencies
 ```bash
 uv sync
 ```
-
----
 
 ### 5. Run the program
 ```bash
