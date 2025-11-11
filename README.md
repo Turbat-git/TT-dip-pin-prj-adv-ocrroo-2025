@@ -50,7 +50,7 @@ uv run python preliminary/library_basics.py
 ---
 ## Contribution
 
-Contributors please visit the following link for the contribution guideline. [Contribution Guideline] ()
+Contributors please visit the following link for the contribution guideline. [Contribution Guideline](https://github.com/Turbat-git/TT-dip-pin-prj-adv-ocrroo-2025/blob/main/docs/CONTRIBUTION.md)
 
 ---
 
