@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>OCRROO Web Prototype</title>
+</head>
+<body>
+  <h1>🎥 OCRROO Web GUI (Prototype)</h1>
+
+  <section id="form-section">
+    <h2>Select Video and Time</h2>
+    <label for="videoSelect">Video:</label>
+    <select id="videoSelect"></select>
+
+    <label for="timeInput">Time (seconds):</label>
+    <input type="number" id="timeInput" min="0" step="1" value="1" />
+
+    <button id="runBtn">Parse Frame</button>
+  </section>
+
+  <section id="results" style="display:none;">
+    <h2>Frame Preview</h2>
+    <img id="frameImage" alt="Extracted frame" />
+
+    <h2>Parsed OCR Text</h2>
+    <pre id="ocrText"></pre>
+  </section>
+
+</body>
+</html>

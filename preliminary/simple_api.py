@@ -46,6 +46,7 @@ def list_videos():
         ]
     }
 
+
 def _open_vid_or_404(vid: str) -> CodingVideo:
     path = VIDEOS.get(vid)
     if not path or not path.is_file():
@@ -54,6 +55,7 @@ def _open_vid_or_404(vid: str) -> CodingVideo:
         return CodingVideo(path)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=f"Could not open video {e}")
+
 
 def _meta(video: CodingVideo) -> VideoMetaData:
     return VideoMetaData(
