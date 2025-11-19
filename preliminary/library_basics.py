@@ -60,9 +60,14 @@ class CodingVideo:
 
         Reference
         ---------
-        # TODO: Find a tutorial on OpenCV that demonstrates color space conversion
+        https://docs.opencv.org/3.4/de/d25/imgproc_color_conversions.html
 
         """
+        self.capture.set(cv2.CAP_PROP_POS_FRAMES, frame_number - 1)
+        ok, frame = self.capture.read()
+        if not ok:
+            raise ValueError("Unable to read frame from file")
+        return cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
     def get_image_as_bytes(self, seconds: int) -> bytes:
         self.capture.set(cv2.CAP_PROP_POS_FRAMES, self.get_frame_number_at_time(seconds))
