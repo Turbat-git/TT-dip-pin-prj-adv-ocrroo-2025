@@ -1,9 +1,9 @@
+import base64
+from pathlib import Path
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
-from pathlib import Path
 from preliminary.library_basics import CodingVideo
-import base64
 
 app = FastAPI()
 templates = Jinja2Templates(directory="templates/pages")

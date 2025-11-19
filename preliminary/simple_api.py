@@ -5,10 +5,10 @@ Drive the API to complete "interprocess communication"
 Requirements
 """
 
+from pathlib import Path
 from fastapi import FastAPI, HTTPException
 from fastapi import Response
 from pydantic import BaseModel
-from pathlib import Path
 from library_basics import CodingVideo
 
 
@@ -69,12 +69,12 @@ def _meta(video: CodingVideo) -> VideoMetaData:
 def video(vid: str):
     video = _open_vid_or_404(vid)
     try:
-            meta = _meta(video)
-            meta._links = {
-                "self": f"/video/{vid}",
-                "frames": f"/video/{vid}/frame/{{seconds}}"
-            }
-            return meta
+        meta = _meta(video)
+        meta._links = {
+            "self": f"/video/{vid}",
+            "frames": f"/video/{vid}/frame/{{seconds}}"
+        }
+        return meta
     finally:
         video.capture.release()
 
@@ -85,6 +85,6 @@ def video_frame(vid: str, t: float):
         video = _open_vid_or_404(vid)
         return Response(content=video.get_image_as_bytes(t), media_type="image/png")
     finally:
-      video.capture.release()
+        video.capture.release()
 
 # TODO: add enpoint to get ocr e.g. /video/{vid}/frame/{t}/ocr
