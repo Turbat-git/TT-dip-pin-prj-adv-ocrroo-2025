@@ -1,30 +1,45 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>OCRROO Web Prototype</title>
+    <meta charset="UTF-8"/>
+    <title>Select Video</title>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-  <h1>🎥 OCRROO Web GUI (Prototype)</h1>
 
-  <section id="form-section">
-    <h2>Select Video and Time</h2>
-    <label for="videoSelect">Video:</label>
-    <select id="videoSelect"></select>
+<body class="bg-gray-900 text-gray-100 p-10">
+<div class="max-w-xl mx-auto bg-gray-800 shadow-lg p-8 rounded-xl">
 
-    <label for="timeInput">Time (seconds):</label>
-    <input type="number" id="timeInput" min="0" step="1" value="1" />
+    <h1 class="text-3xl font-bold mb-6 text-center">Choose a Video</h1>
 
-    <button id="runBtn">Parse Frame</button>
-  </section>
+    <form method="get" onsubmit="return goToVideo();" class="space-y-6">
 
-  <section id="results" style="display:none;">
-    <h2>Frame Preview</h2>
-    <img id="frameImage" alt="Extracted frame" />
+        <!-- Video Dropdown -->
+        <div>
+            <label class="block font-semibold mb-2">Available Videos:</label>
+            <select id="videoSelect"
+                    class="border border-gray-600 p-3 w-full rounded bg-gray-700 text-gray-100">
+                {% for vid, path in videos.items() %}
+                <option value="{{ vid }}">{{ vid }}</option>
+                {% endfor %}
+            </select>
+        </div>
 
-    <h2>Parsed OCR Text</h2>
-    <pre id="ocrText"></pre>
-  </section>
+        <button type="submit"
+                class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg w-full">
+            Continue
+        </button>
+
+    </form>
+
+</div>
+
+<script>
+function goToVideo() {
+    const vid = document.getElementById("videoSelect").value;
+    window.location.href = `/video/${vid}/frame/1.0`;  // Default first frame
+    return false;
+}
+</script>
 
 </body>
 </html>

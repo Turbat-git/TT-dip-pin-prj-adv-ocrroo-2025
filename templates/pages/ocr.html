@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <title>OCR Result</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-900 text-gray-100 p-10">
+
+<div class="max-w-3xl mx-auto bg-gray-800 shadow-lg p-8 rounded-xl space-y-8">
+
+    <a href="/" class="text-blue-400 hover:underline">&larr; Back</a>
+
+    <h1 class="text-3xl font-bold">Video OCR</h1>
+
+    <p class="text-lg">
+        <strong>Video:</strong> {{ vid }}
+    </p>
+
+    <!-- Frame Preview -->
+    <div class="border border-gray-700 rounded-lg overflow-hidden shadow">
+        <img src="data:image/png;base64,{{ frame_b64 }}" class="w-full">
+    </div>
+
+    <!-- Timestamp Form -->
+    <div class="space-y-4 bg-gray-700 p-6 rounded-lg">
+        <h2 class="text-xl font-semibold mb-4">Select Timestamp</h2>
+
+        <form onsubmit="return goToTimestamp();" class="grid grid-cols-3 gap-4">
+
+            <div>
+                <label class="block mb-1">Hours</label>
+                <input id="hours" type="number" min="0" value="0"
+                       class="border border-gray-600 p-2 w-full rounded bg-gray-800 text-gray-100">
+            </div>
+
+            <div>
+                <label class="block mb-1">Minutes</label>
+                <input id="minutes" type="number" min="0" max="59" value="0"
+                       class="border border-gray-600 p-2 w-full rounded bg-gray-800 text-gray-100">
+            </div>
+
+            <div>
+                <label class="block mb-1">Seconds</label>
+                <input id="seconds" type="number" min="0" max="59" value="1"
+                       class="border border-gray-600 p-2 w-full rounded bg-gray-800 text-gray-100">
+            </div>
+
+            <button type="submit"
+                    class="col-span-3 mt-4 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg">
+                Load Frame + OCR
+            </button>
+
+        </form>
+    </div>
+
+    <!-- OCR Text -->
+    <div>
+        <h2 class="text-2xl font-bold mb-2">Extracted Text</h2>
+        <pre class="bg-gray-700 p-4 rounded-lg whitespace-pre-wrap text-gray-100">{{ ocr_text }}</pre>
+    </div>
+
+</div>
+
+<script>
+function goToTimestamp() {
+    const h = parseInt(document.getElementById("hours").value) || 0;
+    const m = parseInt(document.getElementById("minutes").value) || 0;
+    const s = parseInt(document.getElementById("seconds").value) || 0;
+
+    const totalSeconds = h * 3600 + m * 60 + s;
+
+    window.location.href = `/video/{{ vid }}/frame/${totalSeconds}`;
+    return false;
+}
+</script>
+
+</body>
+</html>
