@@ -44,7 +44,7 @@ uv sync
 
 ### 5. Run the program (This will be changed as project progresses)
 ```bash
-uv run python preliminary/library_basics.py 
+uvicorn main:app --reload
 ```
 
 ---
