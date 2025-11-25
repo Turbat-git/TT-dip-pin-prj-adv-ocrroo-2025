@@ -33,12 +33,171 @@
 
 </div>
 
+<h2 class="text-2xl font-bold mt-10 mb-4 text-center">Customize Keyboard Shortcuts</h2>
+<div id="shortcut-list" class="bg-[#222] p-4 rounded-lg mt-4 space-y-4">
+
+    <p>Press a key (or combination like Ctrl+K) to define each shortcut.
+       Use <strong>Tab</strong> and <strong>Shift+Tab</strong> to move between fields.</p>
+
+    <div class="shortcut-item">
+        <label for="extract_frame">Extract Frame:</label>
+        <input type="text" id="extract_frame" class="w-full bg-gray-700 border border-gray-600 p-3 rounded-lg text-gray-100 focus:outline-none cursor-pointer shortcut-input"
+               aria-label="Shortcut for Extract Frame" tabindex="0" readonly>
+    </div>
+
+    <div class="shortcut-item">
+        <label for="prev_5">Jump Back 5 Seconds:</label>
+        <input type="text" id="prev_5" class="w-full bg-gray-700 border border-gray-600 p-3 rounded-lg text-gray-100 focus:outline-none cursor-pointer shortcut-input"
+               aria-label="Shortcut for Jump Back 5 seconds" tabindex="0" readonly>
+    </div>
+
+    <div class="shortcut-item">
+        <label for="next_5">Jump Forward 5 Seconds:</label>
+        <input type="text" id="next_5" class="w-full bg-gray-700 border border-gray-600 p-3 rounded-lg text-gray-100 focus:outline-none cursor-pointer shortcut-input"
+               aria-label="Shortcut for Jump Forward 5 seconds" tabindex="0" readonly>
+    </div>
+
+    <div class="shortcut-item">
+        <label for="copy_ocr">Copy OCR Result:</label>
+        <input type="text" id="copy_ocr" class="w-full bg-gray-700 border border-gray-600 p-3 rounded-lg text-gray-100 focus:outline-none cursor-pointer shortcut-input"
+               aria-label="Shortcut for Copy OCR result" tabindex="0" readonly>
+    </div>
+
+    <button class="w-full mt-4 px-3 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition"
+            onclick="resetShortcuts(); return false;">
+        Reset to Default
+    </button>
+
+    <!-- Screen reader friendly error message area -->
+    <div id="shortcut-error" role="alert" aria-live="assertive" class="text-red-400 mt-2"></div>
+</div>
+
 <script>
 function goToVideo() {
     const vid = document.getElementById("videoSelect").value;
-    window.location.href = `/video/${vid}/frame/1.0`;  // Default first frame
+    window.location.href = `/video/${vid}/frame/1.0`;
     return false;
 }
+
+// normalized defaults (no spaces, lowercase)
+const defaultShortcuts = {
+    extract_frame: "e",
+    prev_5: "j",
+    next_5: "l",
+    copy_ocr: "ctrl+c"
+};
+
+function normalizeCombo(combo) {
+    if (!combo) return "";
+    // remove spaces and lowercase, ensure '+' is separator
+    return combo.replace(/\s+/g, "").toLowerCase();
+}
+
+function loadShortcuts() {
+    const savedRaw = localStorage.getItem("ocrroo_shortcuts");
+    let saved = savedRaw ? JSON.parse(savedRaw) : null;
+    if (!saved) saved = defaultShortcuts;
+    // normalize loaded values and ensure every key exists
+    for (const action of Object.keys(defaultShortcuts)) {
+        const raw = saved[action] ?? defaultShortcuts[action];
+        document.getElementById(action).value = normalizeCombo(raw);
+    }
+    // persist normalized shape back
+    saveShortcutsFromInputs();
+}
+
+function saveShortcuts(obj) {
+    localStorage.setItem("ocrroo_shortcuts", JSON.stringify(obj));
+}
+
+// gather current values from inputs and save normalized
+function saveShortcutsFromInputs() {
+    const obj = {};
+    document.querySelectorAll(".shortcut-input").forEach(i => {
+        obj[i.id] = normalizeCombo(i.value || "");
+    });
+    saveShortcuts(obj);
+}
+
+function resetShortcuts() {
+    saveShortcuts(defaultShortcuts);
+    loadShortcuts();
+    announce("Shortcuts reset to default.");
+}
+
+// Screen-reader friendly announcer
+function announce(msg) {
+    const errBox = document.getElementById("shortcut-error");
+    errBox.textContent = msg;
+}
+
+// helper to check duplicates
+function isDuplicate(combo, ignoreInput) {
+    if (!combo) return false;
+    const all = Array.from(document.querySelectorAll(".shortcut-input"));
+    return all.some(i => i !== ignoreInput && normalizeCombo(i.value) === combo);
+}
+
+// Attach listeners to each field
+document.querySelectorAll(".shortcut-input").forEach((input) => {
+    // allow keyboard navigation (Tab) - make focusable
+    input.addEventListener("keydown", (e) => {
+
+        // Allow tab/shift+tab to move focus — don't intercept it
+        if (e.key === "Tab") {
+            return; // let browser handle it
+        }
+
+        e.preventDefault();  // we will capture the combination
+
+        // Build normalized combo
+        const parts = [];
+        if (e.ctrlKey) parts.push("ctrl");
+        if (e.metaKey) parts.push("meta");
+        if (e.altKey) parts.push("alt");
+        if (e.shiftKey) parts.push("shift");
+
+        // Use e.key normalized
+        const k = e.key.length === 1 ? e.key.toLowerCase() : e.key.toLowerCase();
+        // ignore modifier-only presses (e.g. pressing Shift alone)
+        if (["shift","control","ctrl","alt","meta"].includes(k) && parts.length === 0) {
+            // nothing to record yet
+            return;
+        }
+        parts.push(k);
+        const combo = parts.join("+"); // already lower-case
+
+        // Duplicate detection
+        if (isDuplicate(combo, input)) {
+            announce(`"${combo}" is already assigned to another action.`);
+            const stored = JSON.parse(localStorage.getItem("ocrroo_shortcuts") || "{}");
+            input.value = stored[input.id] ?? defaultShortcuts[input.id];
+            return;
+        }
+
+        // Accept and save
+        input.value = combo;
+        saveShortcutsFromInputs();
+        announce(`${input.id.replace("_", " ")} set to ${combo}`);
+    });
+
+    // Clear hint on focus, but do not erase persisted value until keydown confirms
+    input.addEventListener("focus", () => {
+        announce(`Focus ${input.id.replace("_", " ")}. Press shortcut keys to assign.`);
+    });
+
+    // Allow deletion with Backspace to clear a binding
+    input.addEventListener("keyup", (e) => {
+        if (e.key === "Backspace") {
+            input.value = "";
+            saveShortcutsFromInputs();
+            announce(`${input.id.replace("_", " ")} cleared`);
+        }
+    });
+});
+
+// initialize
+loadShortcuts();
 </script>
 
 </body>
