@@ -10,7 +10,9 @@ from fastapi import FastAPI, HTTPException
 from fastapi import Response
 from pydantic import BaseModel
 from library_basics import CodingVideo
-
+import pytesseract
+from PIL import Image
+import io
 
 app = FastAPI()
 
@@ -22,11 +24,13 @@ VIDEOS: dict[str, Path] = {
     "demo": Path("../resources/oop.mp4")
 }
 
+
 class VideoMetaData(BaseModel):
     fps: float
     frame_count: int
     duration_seconds: float
     _links: dict | None = None
+
 
 @app.get("/video")
 def list_videos():
@@ -87,4 +91,24 @@ def video_frame(vid: str, t: float):
     finally:
         video.capture.release()
 
-# TODO: add enpoint to get ocr e.g. /video/{vid}/frame/{t}/ocr
+
+@app.get("/video/{vid}/frame/{t}/ocr")
+def ocr_frame(vid: str, t: float):
+    """
+    Extract OCR text from the video frame at time t.
+    """
+    try:
+        video = _open_vid_or_404(vid)
+        # Get the frame as raw PNG bytes
+        img_bytes = video.get_image_as_bytes(t)
+
+        # Convert bytes → PIL Image
+        image = Image.open(io.BytesIO(img_bytes))
+
+        # Run Tesseract OCR
+        text = pytesseract.image_to_string(image)
+
+        return {"timestamp": t, "text": text}
+
+    finally:
+        video.capture.release()
