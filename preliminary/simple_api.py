@@ -6,8 +6,10 @@ Requirements
 """
 
 from pathlib import Path
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi import Response
+from fastapi.templating import Jinja2Templates
+from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
 from library_basics import CodingVideo
 import pytesseract
@@ -15,6 +17,8 @@ from PIL import Image
 import io
 
 app = FastAPI()
+
+templates = Jinja2Templates(directory="templates")
 
 
 # We'll create a lightweight "database" for our videos
@@ -93,7 +97,7 @@ def video_frame(vid: str, t: float):
 
 
 @app.get("/video/{vid}/frame/{t}/ocr")
-def ocr_frame(vid: str, t: float):
+def ocr_frame(request: Request, vid: str, t: float):
     """
     Extract OCR text from the video frame at time t.
     """
@@ -108,7 +112,13 @@ def ocr_frame(vid: str, t: float):
         # Run Tesseract OCR
         text = pytesseract.image_to_string(image)
 
-        return {"timestamp": t, "text": text}
+        return templates.TemplateResponse(
+            "page.html",
+            {
+                "request": request,
+                "ocr_text": text,
+            }
+        )
 
     finally:
         video.capture.release()
