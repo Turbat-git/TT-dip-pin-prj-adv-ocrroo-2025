@@ -11,33 +11,18 @@ def run_llm(prompt: str) -> str:
       ollama run llama3.1:7b --prompt "extract only code"
     """
 
-    final_prompt = f"""
-    You are a code extraction engine.
-    Given OCR text, return ONLY the code blocks found.
-    Do NOT rewrite, fix, explain, or comment.
-    If no code exists, return an empty string.
+    final_prompt = f"Extract only the programming code from the following OCR text:\n\n{prompt}"
 
-    OCR TEXT:
-    {prompt}
-    """
-
-    cmd = f'ollama run llama3.1 "{final_prompt}"'
-
-    try:
-        result = subprocess.run(
-            shlex.split(cmd),
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=True,
-            timeout=45
-        )
-    except Exception as e:
-        return f"LLM ERROR: {e}"
+    result = subprocess.run(
+        ["ollama", "run", "llama3.1:7b", "--prompt", final_prompt],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE
+    )
 
     if result.returncode != 0:
-        return f"LLM ERROR: {result.stderr}"
+        raise RuntimeError(f"Ollama failed: {result.stderr.decode()}")
 
-    return result.stdout.strip()
+    return result.stdout.decode().strip()
 
 if __name__ == "__main__":
     input_text = sys.stdin.read()
