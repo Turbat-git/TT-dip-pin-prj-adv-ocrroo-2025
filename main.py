@@ -8,6 +8,10 @@ from pydantic import BaseModel
 import pytesseract
 from PIL import Image
 import io
+import subprocess
+import shlex
+import json
+from preliminary.llm_runner import run_llm
 
 app = FastAPI()
 templates = Jinja2Templates(directory="templates/pages")
@@ -43,13 +47,15 @@ def view_frame(request: Request, vid: str, t: float = 1.0):
         image = Image.open(io.BytesIO(frame_bytes))
         ocr_text = pytesseract.image_to_string(image).strip()
 
+        extracted_code = run_llm(ocr_text)
+
         return templates.TemplateResponse(
             "ocr.html",
             {
                 "request": request,
                 "vid": vid,
                 "frame_b64": frame_b64,
-                "ocr_text": ocr_text,
+                "ocr_text": extracted_code,
             }
         )
 

@@ -42,7 +42,20 @@ cd TT-dip-pin-prj-adv-ocrroo-2025
 uv sync
 ```
 
-### 5. Run the program (This will be changed as project progresses)
+### 5. Download AI model
+Go to [Ollama Installation](https://ollama.com/download/mac) and follow the instruction to download ollama locally 
+
+Confirm it is installed by running the following command.
+```bash
+ollama --version
+```
+
+After it is installed, run the following command
+```bash
+ollama pull llama3.1
+```
+
+### 6. Run the program (This will be changed as project progresses)
 ```bash
 uvicorn main:app --reload
 ```
