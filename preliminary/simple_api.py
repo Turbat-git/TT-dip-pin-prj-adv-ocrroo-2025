@@ -6,13 +6,19 @@ Requirements
 """
 
 from pathlib import Path
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi import Response
+from fastapi.templating import Jinja2Templates
+from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
 from library_basics import CodingVideo
-
+import pytesseract
+from PIL import Image
+import io
 
 app = FastAPI()
+
+templates = Jinja2Templates(directory="templates")
 
 
 # We'll create a lightweight "database" for our videos
@@ -22,11 +28,13 @@ VIDEOS: dict[str, Path] = {
     "demo": Path("../resources/oop.mp4")
 }
 
+
 class VideoMetaData(BaseModel):
     fps: float
     frame_count: int
     duration_seconds: float
     _links: dict | None = None
+
 
 @app.get("/video")
 def list_videos():
@@ -87,4 +95,39 @@ def video_frame(vid: str, t: float):
     finally:
         video.capture.release()
 
-# TODO: add enpoint to get ocr e.g. /video/{vid}/frame/{t}/ocr
+
+@app.get("/video/{vid}/frame/{t}/ocr")
+def video_frame_ocr(request: Request, vid: str, t: float):
+    """
+    Extracts a frame at `t` seconds from video `vid` and performs OCR on it.
+    Returns extracted text as JSON.
+
+    Reference:
+    https://pypi.org/project/pytesseract/
+    """
+    video = _open_vid_or_404(vid)
+
+    try:
+        # Get frame image bytes
+        frame_bytes = video.get_image_as_bytes(t)
+
+        # Convert to base64 for <img src="...">
+        import base64
+        frame_b64 = base64.b64encode(frame_bytes).decode()
+
+        # Run OCR
+        image = Image.open(io.BytesIO(frame_bytes))
+        ocr_text = pytesseract.image_to_string(image).strip()
+
+        return templates.TemplateResponse(
+            "ocr.html",
+            {
+                "request": request,
+                "vid": vid,
+                "frame_b64": frame_b64,
+                "ocr_text": ocr_text,
+            }
+        )
+
+    finally:
+        video.capture.release()
