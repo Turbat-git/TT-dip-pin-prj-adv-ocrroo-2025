@@ -4,6 +4,10 @@ from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from preliminary.library_basics import CodingVideo
+from pydantic import BaseModel
+import pytesseract
+from PIL import Image
+import io
 
 app = FastAPI()
 templates = Jinja2Templates(directory="templates/pages")
@@ -26,13 +30,28 @@ def index(request: Request):
 @app.get("/video/{vid}/frame/{t}", response_class=HTMLResponse)
 def view_frame(request: Request, vid: str, t: float = 1.0):
     video = _open_vid_or_404(vid)
+
     try:
+        # Get frame image bytes
         frame_bytes = video.get_image_as_bytes(t)
-        frame_b64 = base64.b64encode(frame_bytes).decode("utf-8")
-        ocr_text = "This is a mocked OCR text."
+
+        # Convert to base64 for <img src="...">
+        import base64
+        frame_b64 = base64.b64encode(frame_bytes).decode()
+
+        # Run OCR
+        image = Image.open(io.BytesIO(frame_bytes))
+        ocr_text = pytesseract.image_to_string(image).strip()
+
         return templates.TemplateResponse(
             "ocr.html",
-            {"request": request, "vid": vid, "frame_b64": frame_b64, "ocr_text": ocr_text}
+            {
+                "request": request,
+                "vid": vid,
+                "frame_b64": frame_b64,
+                "ocr_text": ocr_text,
+            }
         )
+
     finally:
         video.capture.release()

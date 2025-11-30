@@ -27,7 +27,7 @@
     <div class="space-y-4 bg-gray-700 p-6 rounded-lg">
         <h2 class="text-xl font-semibold mb-4">Select Timestamp</h2>
 
-        <form id="timestamp-form" onsubmit="return ajaxExtract();" class="grid grid-cols-3 gap-4">
+        <form id="timestamp-form" class="grid grid-cols-3 gap-4">
 
             <div>
                 <label class="block mb-1">Hours</label>
@@ -218,6 +218,11 @@ document.addEventListener("keydown", function(e) {
         copyOCR();
         return;
     }
+});
+
+document.getElementById("timestamp-form").addEventListener("submit", function(e) {
+    e.preventDefault();
+    ajaxExtract();
 });
 </script>
 

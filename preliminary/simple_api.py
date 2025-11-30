@@ -97,26 +97,35 @@ def video_frame(vid: str, t: float):
 
 
 @app.get("/video/{vid}/frame/{t}/ocr")
-def ocr_frame(request: Request, vid: str, t: float):
+def video_frame_ocr(request: Request, vid: str, t: float):
     """
-    Extract OCR text from the video frame at time t.
+    Extracts a frame at `t` seconds from video `vid` and performs OCR on it.
+    Returns extracted text as JSON.
+
+    Reference:
+    https://pypi.org/project/pytesseract/
     """
+    video = _open_vid_or_404(vid)
+
     try:
-        video = _open_vid_or_404(vid)
-        # Get the frame as raw PNG bytes
-        img_bytes = video.get_image_as_bytes(t)
+        # Get frame image bytes
+        frame_bytes = video.get_image_as_bytes(t)
 
-        # Convert bytes → PIL Image
-        image = Image.open(io.BytesIO(img_bytes))
+        # Convert to base64 for <img src="...">
+        import base64
+        frame_b64 = base64.b64encode(frame_bytes).decode()
 
-        # Run Tesseract OCR
-        text = pytesseract.image_to_string(image)
+        # Run OCR
+        image = Image.open(io.BytesIO(frame_bytes))
+        ocr_text = pytesseract.image_to_string(image).strip()
 
         return templates.TemplateResponse(
-            "page.html",
+            "ocr.html",
             {
                 "request": request,
-                "ocr_text": text,
+                "vid": vid,
+                "frame_b64": frame_b64,
+                "ocr_text": ocr_text,
             }
         )
 
