@@ -1,6 +1,5 @@
 import subprocess
 import sys
-import json
 import shlex
 
 def run_llm(prompt: str) -> str:
@@ -9,22 +8,20 @@ def run_llm(prompt: str) -> str:
     Adjust the command for your local model.
 
     Example command (Ollama):
-      ollama run codellama:7b --prompt "extract only code"
+      ollama run llama3.1:7b --prompt "extract only code"
     """
 
-    # Build full prompt
     final_prompt = f"""
-You are a code extraction engine.
-Given OCR text, return ONLY the code blocks found.
-Do NOT rewrite, fix, explain, or comment.
-If no code exists, return an empty string.
+    You are a code extraction engine.
+    Given OCR text, return ONLY the code blocks found.
+    Do NOT rewrite, fix, explain, or comment.
+    If no code exists, return an empty string.
 
-OCR TEXT:
-{prompt}
-"""
+    OCR TEXT:
+    {prompt}
+    """
 
-    # Example using Ollama
-    cmd = f'ollama run codellama "{final_prompt}"'
+    cmd = f'ollama run llama3.1 "{final_prompt}"'
 
     try:
         result = subprocess.run(
@@ -42,8 +39,6 @@ OCR TEXT:
 
     return result.stdout.strip()
 
-
 if __name__ == "__main__":
-    # If used as a CLI tool:
     input_text = sys.stdin.read()
     print(run_llm(input_text))

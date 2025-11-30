@@ -15,10 +15,6 @@ from library_basics import CodingVideo
 import pytesseract
 from PIL import Image
 import io
-import subprocess
-import shlex
-import json
-from llm_runner import run_llm
 
 app = FastAPI()
 
