@@ -14,15 +14,17 @@ def run_llm(prompt: str) -> str:
     final_prompt = f"Extract only the programming code from the following OCR text:\n\n{prompt}"
 
     result = subprocess.run(
-        ["ollama", "run", "llama3.1:7b", "--prompt", final_prompt],
+        ["ollama", "run", "llama3.1"],
+        input=final_prompt,
         stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE
+        stderr=subprocess.PIPE,
+        text=True,
     )
 
     if result.returncode != 0:
-        raise RuntimeError(f"Ollama failed: {result.stderr.decode()}")
+        raise RuntimeError(f"Ollama failed: {result.stderr}")
 
-    return result.stdout.decode().strip()
+    return result.stdout.strip()
 
 if __name__ == "__main__":
     input_text = sys.stdin.read()

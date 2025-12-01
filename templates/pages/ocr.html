@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8"/>
-    <title>OCR Result</title>
+    <title>Video AI Extraction</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
@@ -10,9 +10,12 @@
 
 <div class="max-w-3xl mx-auto bg-gray-800 shadow-lg p-8 rounded-xl space-y-8">
 
-    <a href="/" class="text-blue-400 hover:underline">&larr; Back</a>
+    <button onclick="window.location.href='/'"
+        class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg">
+    ← Back
+    </button>
 
-    <h1 class="text-3xl font-bold">Video OCR</h1>
+    <h1 class="text-3xl font-bold">Video AI Extraction</h1>
 
     <p class="text-lg">
         <strong>Video:</strong> {{ vid }}
@@ -20,7 +23,7 @@
 
     <!-- Frame Preview -->
     <div id="frame-wrap" class="border border-gray-700 rounded-lg overflow-hidden shadow">
-        <img id="frame-img" src="data:image/png;base64,{{ frame_b64 }}" class="w-full" alt="Extracted frame">
+        <img id="frame-img" src="data:image/png;base64,{{ frame_b64 }}" class="w-full" alt="Video frame">
     </div>
 
     <!-- Timestamp Form -->
@@ -28,7 +31,6 @@
         <h2 class="text-xl font-semibold mb-4">Select Timestamp</h2>
 
         <form id="timestamp-form" class="grid grid-cols-3 gap-4">
-
             <div>
                 <label class="block mb-1">Hours</label>
                 <input id="hours" type="number" min="0" value="0"
@@ -47,31 +49,29 @@
                        class="border border-gray-600 p-2 w-full rounded bg-gray-800 text-gray-100">
             </div>
 
-            <button id="load-frame-btn" type="submit"
+            <button id="run-ai-btn" type="button"
                     class="col-span-3 mt-4 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg">
-                Load Frame + OCR
+                Load Frame + AI
             </button>
-
         </form>
 
         <div class="flex gap-3 mt-2">
-            <button type="button" id="prev5-btn" class="px-3 py-1 bg-gray-600 rounded" onclick="adjustTimestamp(-5)">-5s</button>
-            <button type="button" id="next5-btn" class="px-3 py-1 bg-gray-600 rounded" onclick="adjustTimestamp(5)">+5s</button>
+            <button type="button" class="px-3 py-1 bg-gray-600 rounded" onclick="adjustTimestamp(-5)">-5s</button>
+            <button type="button" class="px-3 py-1 bg-gray-600 rounded" onclick="adjustTimestamp(5)">+5s</button>
         </div>
     </div>
 
-    <!-- OCR Text -->
+    <!-- AI Output -->
     <div>
-        <h2 class="text-2xl font-bold mb-2">Extracted Text</h2>
-        <pre id="ocr-output" class="bg-gray-700 p-4 rounded-lg whitespace-pre-wrap text-gray-100">{{ ocr_text }}</pre>
-        <button id="copy-btn" class="w-100 mt-4 px-3 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition"
-                onclick="copyOCR()">Copy OCR</button>
+        <h2 class="text-2xl font-bold mb-2">AI Output</h2>
+        <pre id="ocr-output" class="bg-gray-700 p-4 rounded-lg whitespace-pre-wrap text-gray-100">{{ ai_output }}</pre>
+        <button class="w-full mt-4 px-3 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition"
+                onclick="copyAI()">Copy AI Output</button>
     </div>
 
 </div>
 
 <script>
-// utility: get seconds from hh:mm:ss fields
 function getTotalSecondsFromFields() {
     const h = parseInt(document.getElementById("hours").value) || 0;
     const m = parseInt(document.getElementById("minutes").value) || 0;
@@ -79,7 +79,6 @@ function getTotalSecondsFromFields() {
     return h*3600 + m*60 + s;
 }
 
-// utility: set hh:mm:ss fields from seconds integer (clamps)
 function setFieldsFromSeconds(totalSeconds) {
     totalSeconds = Math.max(0, Math.floor(totalSeconds));
     const h = Math.floor(totalSeconds / 3600);
@@ -90,140 +89,54 @@ function setFieldsFromSeconds(totalSeconds) {
     document.getElementById("seconds").value = s;
 }
 
-// adjust timestamp by deltaSeconds and do NOT submit automatically
 function adjustTimestamp(deltaSeconds) {
     const current = getTotalSecondsFromFields();
-    const next = Math.max(0, current + deltaSeconds);
-    setFieldsFromSeconds(next);
+    setFieldsFromSeconds(current + deltaSeconds);
 }
 
-// AJAX extract: fetch page HTML for /video/{{ vid }}/frame/{t}, parse and update frame + OCR output
-async function ajaxExtract() {
-    const totalSeconds = getTotalSecondsFromFields();
-    const url = `/video/{{ vid }}/frame/${totalSeconds}`;
-
-    try {
-        const resp = await fetch(url, { method: 'GET', headers: { 'Accept': 'text/html' }});
-        if (!resp.ok) {
-            console.error("Fetch failed", resp.status);
-            return false;
-        }
-        const html = await resp.text();
-        // parse returned HTML
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(html, 'text/html');
-
-        // find first <img> inside the content returned (the frame)
-        const img = doc.querySelector('img');
-        if (img && img.src) {
-            document.getElementById('frame-img').src = img.src;
-        }
-
-        // find OCR text - look for element with id "ocr-output" or the first <pre>
-        let newOcr = "";
-        const pre = doc.getElementById('ocr-output') || doc.querySelector('pre') || null;
-        if (pre) {
-            newOcr = pre.textContent;
-        } else {
-            // attempt to extract any text
-            newOcr = doc.body.innerText || "";
-        }
-        document.getElementById('ocr-output').textContent = newOcr;
-
-    } catch (err) {
-        console.error("Error fetching frame:", err);
-    }
-
-    // keep the form values as they are (no page reload)
-    return false; // prevent default submit
-}
-
-function copyOCR() {
+// Copy AI output
+function copyAI() {
     const text = document.getElementById("ocr-output").innerText || "";
     navigator.clipboard.writeText(text)
-        .then(() => console.log("OCR copied to clipboard"))
+        .then(() => console.log("AI output copied"))
         .catch(err => console.error("Copy failed", err));
 }
 
-// Normalize helper (same logic as index)
-function normalizeCombo(combo) {
-    if (!combo) return "";
-    return combo.replace(/\s+/g, "").toLowerCase();
+// Load first frame preview on page load
+async function loadFramePreview() {
+    const t = getTotalSecondsFromFields();
+    try {
+        const resp = await fetch(`/video/{{ vid }}/frame_preview/${t}`);
+        if (!resp.ok) return;
+        const html = await resp.text();
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+        const img = doc.querySelector('img');
+        if (img) document.getElementById('frame-img').src = img.src;
+    } catch (err) {
+        console.error("Error loading frame preview:", err);
+    }
 }
 
-function loadShortcutsNormalized() {
-    const raw = localStorage.getItem("ocrroo_shortcuts");
-    let obj = raw ? JSON.parse(raw) : null;
-    if (!obj) {
-        obj = {
-            extract_frame: "e",
-            prev_5: "j",
-            next_5: "l",
-            copy_ocr: "ctrl+c"
-        };
+// Run AI for selected timestamp
+async function runAI() {
+    const t = getTotalSecondsFromFields();
+    const formData = new FormData();
+    formData.append("t", t);
+
+    try {
+        const resp = await fetch(`/video/{{ vid }}/extract_ai`, { method: "POST", body: formData });
+        const data = await resp.json();
+        document.getElementById('ocr-output').textContent = data.ai_output;
+        document.getElementById('frame-img').src = `data:image/png;base64,${data.frame_b64}`;
+    } catch (err) {
+        console.error("Error running AI:", err);
     }
-    for (const k of Object.keys(obj)) {
-        obj[k] = normalizeCombo(obj[k]);
-    }
-    return obj;
 }
 
-// triggerExtract will call the AJAX extractor
-function triggerExtract() {
-    // use the AJAX function directly
-    ajaxExtract();
-}
+window.addEventListener("DOMContentLoaded", loadFramePreview);
+document.getElementById("run-ai-btn").addEventListener("click", runAI);
 
-// keyboard shortcuts handling
-document.addEventListener("keydown", function(e) {
-    // build normalized combo
-    const parts = [];
-    if (e.ctrlKey) parts.push("ctrl");
-    if (e.altKey) parts.push("alt");
-    if (e.shiftKey) parts.push("shift");
-    if (e.metaKey) parts.push("meta");
-
-    const keyName = e.key.length === 1 ? e.key.toLowerCase() : e.key.toLowerCase();
-    // if user just pressed modifier alone (no other key), ignore
-    if (["ctrl","control","shift","alt","meta"].includes(keyName) && parts.length === 0) return;
-    parts.push(keyName);
-    const combo = parts.join("+");
-
-    const shortcuts = loadShortcutsNormalized();
-
-    // Extract frame
-    if (combo === shortcuts.extract_frame) {
-        e.preventDefault();
-        triggerExtract();
-        return;
-    }
-
-    // Prev 5: modify timestamp fields by -5 seconds
-    if (combo === shortcuts.prev_5) {
-        e.preventDefault();
-        adjustTimestamp(-5);
-        return;
-    }
-
-    // Next 5: +5 seconds
-    if (combo === shortcuts.next_5) {
-        e.preventDefault();
-        adjustTimestamp(5);
-        return;
-    }
-
-    // Copy OCR
-    if (combo === shortcuts.copy_ocr) {
-        e.preventDefault();
-        copyOCR();
-        return;
-    }
-});
-
-document.getElementById("timestamp-form").addEventListener("submit", function(e) {
-    e.preventDefault();
-    ajaxExtract();
-});
 </script>
 
 </body>
