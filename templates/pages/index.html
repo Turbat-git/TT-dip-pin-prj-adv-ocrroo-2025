@@ -74,7 +74,19 @@
 
 <script>
 function goToVideo() {
-    const vid = document.getElementById("videoSelect").value;
+    const select = document.getElementById("videoSelect");
+    const vid = select.value.trim();
+
+    if (!vid) {
+        alert("Please select a video before continuing.");
+        return false;
+    }
+
+    if (isNaN(vid)) {
+        alert("Invalid video ID.");
+        return false;
+    }
+
     window.location.href = `/video/${vid}/frame/1.0`;
     return false;
 }
