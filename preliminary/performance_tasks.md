@@ -68,14 +68,13 @@ Tesseract consists of both an OCR Engine and a command line program. It is predo
 1. Examine the [Readme](https://github.com/tesseract-ocr/tesseract?tab=readme-ov-file) and find a list of Python wrappers.
 
 2. What is the URL that lists Python wrappers for Tesseract?
-  > <url-here>
+  > https://tesseract-ocr.github.io/tessdoc/AddOns.html#tesseract-wrappers
 
 3. Select a Python wrapper. What wrapper did you choose and why? Ensure you address each element below in your answer
-> name of the python library
-> how long ago was a commit made to the library
-> does it have external dependencies
-> how does it suite the project requirements
-
+> pytesseract
+> last ever commit to the library was 10 months ago. 
+> Requires Tesseract OCR engine installed on the system and uses Pillow for image handling
+> Integrates cleanly with OpenCV frame extraction. It also supports returning plain text directly from images/frames
 4. Use UV to add the dependency to your project and your `pyproject.toml`
 
 5. If your library has additional requirements (e.g. installing tesseract binaries), note it in your README.md
@@ -101,9 +100,33 @@ FastAPI will allow us to enable communication with our OCR service from other pr
 5. Confirm that a list of videos and URLs is returned by copying the output below:
 > Description
 6. What are the names of the two processes that just communicated?
->
+> First is fastapi server process. The second is curl client process.
 6. Modify the simple_api.py so that it works correctly with your implementation and complete any TODO markers
 7. Demonstrate the use of at least two other end points below:
 >
+> @app.get("/", response_class=HTMLResponse)
+> def index(request: Request):
+> return templates.TemplateResponse("index.html", {"request": request, "videos": VIDEOS})
 >
+> This loads the index page of the program and displays all of the videos uploaded by the user.
 >
+> 
+> 
+
+> @app.post("/upload")
+>def upload_video(video: UploadFile = File(...)):
+>    if not video.filename.lower().endswith(".mp4"):
+>        return HTMLResponse("<p>Only MP4 allowed</p>")
+>
+>    save_path = UPLOAD_DIR / video.filename
+>    with save_path.open("wb") as f:
+>        shutil.copyfileobj(video.file, f)
+>
+>    vid_stem = Path(video.filename).stem
+>
+>    VIDEOS[vid_stem] = save_path
+>
+>   return RedirectResponse(f"/video/{vid_stem}/frame_preview/1.0", status_code=303)
+>
+> 
+> This endpoint allows the users to upload their videos to the program.
